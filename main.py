@@ -9,20 +9,25 @@ class Course:
 
 @dataclass
 class State:
-    # add welcome message
     student_name: str
     target_GPA: float
     current_GPA: float
-    courses = list[Course]
+    is_failing: bool
+    courses: list[Course]
+    threshold_test_scores: list[int]
 
 @route
-def index(state: State):
+def index(state: State) -> Page:
     return Page(
         state,
         content=[
             # add welcome message
             Header(f"Welcome, {state.student_name}")]
     )
+
+@route
+def add_course(state: State) -> Page:
+    pass
 
 
 # start_server()

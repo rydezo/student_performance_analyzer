@@ -4,7 +4,9 @@ from drafter import *
 @dataclass
 class Course:
     course_name: str
+    # convert to letter grade when displaying to user
     current_grade: float
+    credits: int
     test_scores: list[float]
 
 @dataclass
@@ -27,6 +29,10 @@ def index(state: State) -> Page:
 
 @route
 def add_course(state: State) -> Page:
+    pass
+
+@route
+def remove_course(state: State) -> Page:
     pass
 
 

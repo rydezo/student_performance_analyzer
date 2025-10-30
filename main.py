@@ -4,9 +4,9 @@ from drafter import *
 @dataclass
 class Course:
     course_name: str
+    credits: int
     # convert to letter grade when displaying to user
     current_grade: float
-    credits: int
     test_scores: list[float]
 
 @dataclass

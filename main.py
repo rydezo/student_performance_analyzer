@@ -24,7 +24,13 @@ def index(state: State) -> Page:
         state,
         content=[
             # add welcome message
-            Header(f"Welcome, {state.student_name}")]
+            Header(f"Welcome, {state.student_name}"),
+            f"Your GPA: {state.current_GPA}",
+            Button("Add Course", "/add_course"),
+            Button("Remove Course", "/remove_course"),
+            Button("View Courses", "/view_courses"),
+            Button("Add Test Score", "/add_test_score"),
+            Button("View Progress", "/view_progress")]
     )
 
 @route
@@ -48,4 +54,4 @@ def view_progress(state: State) -> Page:
     pass
 
 
-# start_server()
+start_server(State("test name", 4.0, 3.5, False, [], []))

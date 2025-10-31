@@ -35,5 +35,17 @@ def add_course(state: State) -> Page:
 def remove_course(state: State) -> Page:
     pass
 
+@route
+def view_courses(state: State) -> Page:
+    pass
+
+@route
+def add_test_score(state: State) -> Page:
+    pass
+
+@route
+def view_progress(state: State) -> Page:
+    pass
+
 
 # start_server()

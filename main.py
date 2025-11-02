@@ -51,7 +51,13 @@ def add_test_score(state: State) -> Page:
 
 @route
 def view_progress(state: State) -> Page:
+    # to add: "you are {target_GPA - current_GPA} points away from your target GPA."
     pass
 
+# initialize user inputs for home page
+students_name = input("What is your name? ")
+students_GPA = input("What is your current GPA? ")
+students_target_GPA = input("What is your target GPA? ")
+students_failing = float(students_GPA) < 2.0
 
-start_server(State("test name", 4.0, 3.5, False, [], []))
+start_server(State(students_name, float(students_GPA), float(students_target_GPA), students_failing, [], []))

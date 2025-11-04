@@ -51,8 +51,16 @@ def add_test_score(state: State) -> Page:
 
 @route
 def view_progress(state: State) -> Page:
-    # to add: "you are {target_GPA - current_GPA} points away from your target GPA."
-    pass
+    if state.is_failing:
+        pass_status = "failing"
+    else:
+        pass_status = "passing"
+    return Page(
+        state,
+        content=[f"Your GPA is {state.current_GPA}.",
+            f"You are currently {pass_status}.",
+            f"You are {state.target_GPA - state.current_GPA} points away from your target GPA."]
+    )
 
 # initialize user inputs for home page
 students_name = input("What is your name? ")

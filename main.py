@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from bakery import assert_equal
 from drafter import *
 
 @dataclass
@@ -97,5 +98,55 @@ students_name = input("What is your name? ")
 students_GPA = input("What is your current GPA? ")
 students_target_GPA = input("What is your target GPA? ")
 students_failing = float(students_GPA) < 2.0
+
+# tests
+assert_equal(
+ index(State(student_name='ryder', current_GPA=3.5, target_GPA=4.0, is_failing=False, courses=[], threshold_test_scores=[])),
+ Page(state=State(student_name='ryder',
+                 current_GPA=3.5,
+                 target_GPA=4.0,
+                 is_failing=False,
+                 courses=[],
+                 threshold_test_scores=[]),
+     content=[Header(body='Welcome, ryder.', level=1),
+              'Your GPA: 3.5',
+              Button(text='Add Course', url='/add_course'),
+              Button(text='Remove Course', url='/remove_course'),
+              Button(text='View Courses', url='/view_courses'),
+              Button(text='Add Test Score', url='/add_test_score'),
+              Button(text='View Progress', url='/view_progress')]))
+
+assert_equal(
+ add_course(State(student_name='ryder', current_GPA=3.5, target_GPA=4.0, is_failing=False, courses=[], threshold_test_scores=[])),
+ Page(state=State(student_name='ryder',
+                 current_GPA=3.5,
+                 target_GPA=4.0,
+                 is_failing=False,
+                 courses=[],
+                 threshold_test_scores=[]),
+     content=['Name of Course:',
+              TextBox(name='course_name', kind='text', default_value=''),
+              'Number of Credits:',
+              TextBox(name='credits', kind='text', default_value='3'),
+              'Current Grade:',
+              TextBox(name='current_grade', kind='text', default_value='100.0'),
+              Button(text='Add Course', url='/append_course'),
+              Button(text='Cancel', url='/')]))
+
+assert_equal(
+ index(State(student_name='ryder', current_GPA=3.5, target_GPA=4.0, is_failing=False, courses=[], threshold_test_scores=[])),
+ Page(state=State(student_name='ryder',
+                 current_GPA=3.5,
+                 target_GPA=4.0,
+                 is_failing=False,
+                 courses=[],
+                 threshold_test_scores=[]),
+     content=[Header(body='Welcome, ryder.', level=1),
+              'Your GPA: 3.5',
+              Button(text='Add Course', url='/add_course'),
+              Button(text='Remove Course', url='/remove_course'),
+              Button(text='View Courses', url='/view_courses'),
+              Button(text='Add Test Score', url='/add_test_score'),
+              Button(text='View Progress', url='/view_progress')]))
 
 start_server(State(students_name, float(students_GPA), float(students_target_GPA), students_failing, [], []))

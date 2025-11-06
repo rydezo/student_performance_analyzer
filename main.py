@@ -103,10 +103,29 @@ def view_courses(state: State) -> Page:
                      f"Credits: {course_credits}",
                      f"Grades: {course_grades}",
                      f"Test Scores: {course_test_scores}",
+                     Button("Update a Grade", "/update_grade"),
                      Button("Go to Home", "/index")]
         )
     
-    # display courses here
+@route
+def update_grade(state: State) -> Page:
+    courses_names: list[str] = [course.course_name for course in state.courses]
+    return Page(
+        state,
+        content=[
+            "Which course's grade would you like to update?", SelectBox(name="updated_course", options=courses_names),
+            "What is the new grade?", TextBox(name="new_grade"),
+            Button(text="Update Grade", url="/change_grade"),
+            Button(text="Cancel", url="/index")
+        ]
+    )
+
+@route
+def change_grade(state: State, updated_course: str, new_grade: str):
+    for course in state.courses:
+        if course.course_name == updated_course:
+            course.current_grade = float(new_grade)
+    return index(state)
 
 # page 5
 @route

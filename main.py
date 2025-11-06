@@ -102,7 +102,8 @@ def view_courses(state: State) -> Page:
             content=[f"Courses: {course_names}",
                      f"Credits: {course_credits}",
                      f"Grades: {course_grades}",
-                     f"Test Scores: {course_test_scores}"]
+                     f"Test Scores: {course_test_scores}",
+                     Button("Go to Home", "/index")]
         )
     
     # display courses here

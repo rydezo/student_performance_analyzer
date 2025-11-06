@@ -59,7 +59,21 @@ def append_course(state: State, course_name: str, credits: int, current_grade: f
 # page 3
 @route
 def remove_course(state: State) -> Page:
-    pass
+    return Page(
+        state,
+        content=[
+            "Name of Course:", TextBox(name="course_name"),
+            Button(text="Remove Course", url="/delete_course"),
+            Button(text="Cancel", url="/index")
+        ]
+    )
+
+@route
+def delete_course(state: State, course_name: str) -> Page:
+    for course in state.courses:
+        if course.course_name == course_name:
+            state.courses.remove(course)
+    return index(state)
 
 # page 4
 @route
@@ -67,9 +81,28 @@ def view_courses(state: State) -> Page:
     if not state.courses:
         return Page(
             state,
-            ["You currently have no courses. Please add some to view them.",
+            content=["You currently have no courses added. Please add some to view them.",
              Button("Add Course", "/add_course"),
              Button("Go to Home", "/index")]
+        )
+    else:
+        course_names: list[str] = []
+        course_credits: list[int] = []
+        course_grades: list[float] = []
+        course_test_scores: list[list[float]] = []
+
+        for course in state.courses:
+            course_names.append(course.course_name)
+            course_credits.append(course.credits)
+            course_grades.append(course.current_grade)
+            course_test_scores.append(f"{course.course_name} scores: {course.test_scores}")
+            
+        return Page(
+            state,
+            content=[f"Courses: {course_names}",
+                     f"Credits: {course_credits}",
+                     f"Grades: {course_grades}",
+                     f"Test Scores: {course_test_scores}"]
         )
     
     # display courses here

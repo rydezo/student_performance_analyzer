@@ -13,10 +13,16 @@ class Course:
 @dataclass
 class State:
     student_name: str
+
+    ##### have a way for GPA to be updated!
     current_GPA: float
     target_GPA: float
+
+    ##### ...and for this to be changed accordingly
     is_failing: bool
     courses: list[Course]
+
+    ##### modify this in a meaningful way
     threshold_test_scores: list[int]
 
 # page 1

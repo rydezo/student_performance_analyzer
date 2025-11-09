@@ -145,11 +145,22 @@ def view_progress(state: State) -> Page:
         pass_status = "failing"
     else:
         pass_status = "passing"
+
+    # highest course grade
+    high_course = Course("N/A", None, None, None) if not state.courses else state.courses[0]
+    for course in state.courses:
+        if course.current_grade > high_course.current_grade:
+            high_course = course
+
+    # lowest course grade
+
     return Page(
         state,
         content=[f"Your GPA is {state.current_GPA}.",
             f"You are currently {pass_status}.",
-            f"You are {state.target_GPA - state.current_GPA} points away from your target GPA."]
+            f"You are {state.target_GPA - state.current_GPA} points away from your target GPA.",
+            f"Your course with the highest grade: {high_course.course_name}"]
+            # add lowest course grade here
     )
 
 # initialize user inputs for home page

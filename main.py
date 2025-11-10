@@ -136,7 +136,32 @@ def change_grade(state: State, updated_course: str, new_grade: str):
 # page 5
 @route
 def add_test_score(state: State) -> Page:
-    pass
+    courses_names: list[str] = [course.course_name for course in state.courses]
+    return Page(
+        state,
+        content=[
+            "Which course is this test score for?", SelectBox(name="course_for_score", options=courses_names),
+            "What is the test score?", TextBox(name="test_score"),
+            Button(text="Add Test Score", url="/append_score"),
+            Button(text="Cancel", url="/index")
+        ]
+    )
+
+@route
+def append_score(state: State, course_for_score: str, test_score: str):
+    if course_for_score.lower() not in [course.course_name.lower() for course in state.courses]:
+        return Page(
+            state,
+            content=["Invalid course name. Please try again.",
+             Button("Add Course", "/add_course"),
+             Button("Go to Home", "/index")]
+        )
+    
+    for course in state.courses:
+        if course.course_name == course_for_score:
+            course.test_scores.append(float(test_score))
+    
+    return index(state)
 
 # page 6
 @route
@@ -153,13 +178,18 @@ def view_progress(state: State) -> Page:
             high_course = course
 
     # lowest course grade
+    low_course = Course("N/A", None, None, None) if not state.courses else state.courses[0]
+    for course in state.courses:
+        if course.current_grade < low_course.current_grade:
+            low_course = course
 
     return Page(
         state,
         content=[f"Your GPA is {state.current_GPA}.",
             f"You are currently {pass_status}.",
             f"You are {state.target_GPA - state.current_GPA} points away from your target GPA.",
-            f"Your course with the highest grade: {high_course.course_name}"]
+            f"Your course with the highest grade: {high_course.course_name}",
+            f"Your course with the lowest grade: {low_course.course_name}"]
             # add lowest course grade here
     )
 

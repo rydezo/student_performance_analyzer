@@ -60,6 +60,7 @@ def add_course(state: State) -> Page:
 def append_course(state: State, course_name: str, credits: int, current_grade: float) -> Page:
     new_course = Course(course_name, credits, current_grade, [])
     state.courses.append(new_course)
+    update_GPA(state, new_course)
     return index(state)
 
 # page 3
@@ -167,8 +168,32 @@ def append_score(state: State, course_for_score: str, test_score: str):
     for course in state.courses:
         if course.course_name == course_for_score:
             course.test_scores.append(float(test_score))
+            # update course grade and GPA
+            course.current_grade = sum(course.test_scores)/len(course.test_scores)
+            update_GPA(state, course)
     
     return index(state)
+
+def update_GPA(state: State, course: Course):
+    total_grade_points = 0
+    total_credits = 0
+    grade = course.current_grade
+    for course in state.courses:
+        if grade >= 90:
+            course_grade_points = 4.0
+        elif grade >= 80:
+            course_grade_points = 3.0
+        elif grade >= 70:
+            course_grade_points = 2.0
+        elif grade >= 60:
+            course_grade_points = 1.0
+        else:
+            course_grade_points = 0.0
+        total_grade_points += course_grade_points*course.credits
+        total_credits += course.credits
+    
+    state.current_GPA = total_grade_points/total_credits
+
 
 # page 6
 @route

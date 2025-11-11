@@ -136,6 +136,13 @@ def change_grade(state: State, updated_course: str, new_grade: str):
 # page 5
 @route
 def add_test_score(state: State) -> Page:
+    if not state.courses:
+        return Page(
+            state,
+            content=["You currently have no courses added. Please add some to add test scores.",
+             Button("Add Course", "/add_course"),
+             Button("Go to Home", "/index")]
+        )
     courses_names: list[str] = [course.course_name for course in state.courses]
     return Page(
         state,
@@ -189,7 +196,8 @@ def view_progress(state: State) -> Page:
             f"You are currently {pass_status}.",
             f"You are {state.target_GPA - state.current_GPA} points away from your target GPA.",
             f"Your course with the highest grade: {high_course.course_name}",
-            f"Your course with the lowest grade: {low_course.course_name}"]
+            f"Your course with the lowest grade: {low_course.course_name}",
+            Button("Go to Home", "/index")]
             # add lowest course grade here
     )
 

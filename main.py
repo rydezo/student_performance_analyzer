@@ -13,12 +13,8 @@ class Course:
 @dataclass
 class State:
     student_name: str
-
-    ##### have a way for GPA to be updated!
     current_GPA: float
     target_GPA: float
-
-    ##### ...and for this to be changed accordingly
     is_failing: bool
     courses: list[Course]
 
@@ -60,7 +56,7 @@ def add_course(state: State) -> Page:
 def append_course(state: State, course_name: str, credits: int, current_grade: float) -> Page:
     new_course = Course(course_name, credits, current_grade, [])
     state.courses.append(new_course)
-    update_GPA(state, new_course)
+    update_GPA(state)
     return index(state)
 
 # page 3
@@ -132,6 +128,7 @@ def change_grade(state: State, updated_course: str, new_grade: str):
     for course in state.courses:
         if course.course_name == updated_course:
             course.current_grade = float(new_grade)
+            update_GPA(state)
     return index(state)
 
 # page 5
@@ -170,22 +167,21 @@ def append_score(state: State, course_for_score: str, test_score: str):
             course.test_scores.append(float(test_score))
             # update course grade and GPA
             course.current_grade = sum(course.test_scores)/len(course.test_scores)
-            update_GPA(state, course)
+            update_GPA(state)
     
     return index(state)
 
-def update_GPA(state: State, course: Course):
+def update_GPA(state: State):
     total_grade_points = 0
     total_credits = 0
-    grade = course.current_grade
     for course in state.courses:
-        if grade >= 90:
+        if course.current_grade >= 90:
             course_grade_points = 4.0
-        elif grade >= 80:
+        elif course.current_grade >= 80:
             course_grade_points = 3.0
-        elif grade >= 70:
+        elif course.current_grade >= 70:
             course_grade_points = 2.0
-        elif grade >= 60:
+        elif course.current_grade >= 60:
             course_grade_points = 1.0
         else:
             course_grade_points = 0.0
@@ -198,6 +194,7 @@ def update_GPA(state: State, course: Course):
 # page 6
 @route
 def view_progress(state: State) -> Page:
+    state.is_failing = state.current_GPA < 2.0
     if state.is_failing:
         pass_status = "failing"
     else:
@@ -219,11 +216,10 @@ def view_progress(state: State) -> Page:
         state,
         content=[f"Your GPA is {state.current_GPA}.",
             f"You are currently {pass_status}.",
-            f"You are {state.target_GPA - state.current_GPA} points away from your target GPA.",
-            f"Your course with the highest grade: {high_course.course_name}",
-            f"Your course with the lowest grade: {low_course.course_name}",
+            f"You are {round((state.target_GPA - state.current_GPA), 1)} points away from your target GPA ({state.target_GPA}).",
+            f"Your course with the highest grade: {high_course.course_name} ({high_course.current_grade}%)",
+            f"Your course with the lowest grade: {low_course.course_name} ({low_course.current_grade}%)",
             Button("Go to Home", "/index")]
-            # add lowest course grade here
     )
 
 # initialize user inputs for home page

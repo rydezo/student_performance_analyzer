@@ -88,28 +88,41 @@ def view_courses(state: State) -> Page:
              Button("Add Course", "/add_course"),
              Button("Go to Home", "/index")]
         )
-    else:
-        course_names: list[str] = []
-        course_credits: list[int] = []
-        course_grades: list[float] = []
-        course_test_scores: list[list[float]] = []
-
-        for course in state.courses:
-            course_names.append(course.course_name)
-            course_credits.append(course.credits)
-            course_grades.append(course.current_grade)
-            course_test_scores.append(f"{course.course_name} scores: {course.test_scores}")
-            
-        return Page(
-            state,
-            content=[f"Courses: {course_names}",
-                     f"Credits: {course_credits}",
-                     f"Grades: {course_grades}",
-                     f"Test Scores: {course_test_scores}",
-                     Button("Update a Grade", "/update_grade"),
-                     Button("Go to Home", "/index")]
-        )
     
+    course_names: list[str] = []
+    course_credits: list[int] = []
+    course_grades: list[float] = []
+    course_test_scores: list[list[float]] = []
+
+    for course in state.courses:
+        course_names.append(f"{course.course_name}: {get_letter_grade(course)}")
+        course_credits.append(course.credits)
+        course_grades.append(course.current_grade)
+        course_test_scores.append(f"{course.course_name} scores: {course.test_scores}")
+            
+    return Page(
+        state,
+        content=[f"Courses: {course_names}",
+                f"Credits: {course_credits}",
+                f"Grades: {course_grades}",
+                f"Test Scores: {course_test_scores}",
+                Button("Update a Grade", "/update_grade"),
+                Button("Go to Home", "/index")]
+        )
+
+def get_letter_grade(course: Course) -> str:
+    letter_grades = {
+        "A": range(90,101),
+        "B": range(80,90),
+        "C": range(70,80),
+        "D": range(60,70),
+        "F": range(0,60)
+    }
+    for letter, r in letter_grades.items():
+        if int(course.current_grade) in r:
+            return letter
+
+
 @route
 def update_grade(state: State) -> Page:
     courses_names: list[str] = [course.course_name for course in state.courses]
@@ -188,7 +201,7 @@ def update_GPA(state: State):
         total_grade_points += course_grade_points*course.credits
         total_credits += course.credits
     
-    state.current_GPA = total_grade_points/total_credits
+    state.current_GPA = round(total_grade_points/total_credits, 2)
 
 
 # page 6

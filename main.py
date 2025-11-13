@@ -178,7 +178,7 @@ def append_score(state: State, course_for_score: str, test_score: str):
         if course.course_name == course_for_score:
             course.test_scores.append(float(test_score))
             # update course grade and GPA
-            course.current_grade = sum(course.test_scores)/len(course.test_scores)
+            course.current_grade = round(sum(course.test_scores)/len(course.test_scores), 2)
             update_GPA(state)
     
     return index(state)
@@ -208,9 +208,9 @@ def update_GPA(state: State):
 @route
 def view_progress(state: State) -> Page:
     if state.is_failing:
-        pass_status = "failing"
+        pass_status = "failing. You need to lock in!"
     else:
-        pass_status = "passing"
+        pass_status = "passing. Good job!"
 
     # highest course grade
     high_course = Course("N/A", None, None, None) if not state.courses else state.courses[0]
@@ -227,7 +227,7 @@ def view_progress(state: State) -> Page:
     return Page(
         state,
         content=[f"Your GPA is {state.current_GPA}.",
-            f"You are currently {pass_status}.",
+            f"You are currently {pass_status}",
             f"You are {round((state.target_GPA - state.current_GPA), 1)} points away from your target GPA ({state.target_GPA}).",
             f"Your course with the highest grade: {high_course.course_name} ({high_course.current_grade}%)",
             f"Your course with the lowest grade: {low_course.course_name} ({low_course.current_grade}%)",

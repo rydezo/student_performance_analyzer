@@ -16,9 +16,7 @@ class State:
     target_GPA: float
     is_failing: bool
     courses: list[Course]
-
-    ##### modify this in a meaningful way
-    threshold_test_scores: list[int]
+    all_test_scores: dict[str, list[float]]
 
 # page 1
 @route
@@ -121,7 +119,6 @@ def get_letter_grade(course: Course) -> str:
         if int(course.current_grade) in r:
             return letter
 
-
 @route
 def update_grade(state: State) -> Page:
     courses_names: list[str] = [course.course_name for course in state.courses]
@@ -177,6 +174,10 @@ def append_score(state: State, course_for_score: str, test_score: str):
     for course in state.courses:
         if course.course_name == course_for_score:
             course.test_scores.append(float(test_score))
+            if course.course_name not in state.all_test_scores:
+                state.all_test_scores[course.course_name] = [float(test_score)]
+            else:
+                state.all_test_scores[course.course_name].append(float(test_score))
             # update course grade and GPA
             course.current_grade = round(sum(course.test_scores)/len(course.test_scores), 2)
             update_GPA(state)
@@ -231,8 +232,34 @@ def view_progress(state: State) -> Page:
             f"You are {round((state.target_GPA - state.current_GPA), 1)} points away from your target GPA ({state.target_GPA}).",
             f"Your course with the highest grade: {high_course.course_name} ({high_course.current_grade}%)",
             f"Your course with the lowest grade: {low_course.course_name} ({low_course.current_grade}%)",
+            f"Highest test score: {get_highest_score(state)}",
+            f"Lowest test score: {get_lowest_score(state)}",
             Button("Go to Home", "/index")]
     )
+
+def get_highest_score(state: State) -> tuple:
+    if not state.all_test_scores:
+        return (None, None)
+    highest_score = 0
+    course_of_highest = "N/A" if not state.courses else state.courses[0].course_name
+    for course_name, test_scores in state.all_test_scores.items():
+        for test_score in test_scores:
+            if test_score > highest_score:
+                highest_score = test_score
+                course_of_highest = course_name
+    return (f'{highest_score}%', course_of_highest)
+
+def get_lowest_score(state: State) -> tuple:
+    if not state.all_test_scores:
+        return (None, None)
+    lowest_score = 100
+    course_of_lowest = "N/A" if not state.courses else state.courses[0].course_name
+    for course_name, test_scores in state.all_test_scores.items():
+        for test_score in test_scores:
+            if test_score < lowest_score:
+                lowest_score = test_score
+                course_of_lowest = course_name
+    return (f'{lowest_score}%', course_of_lowest)
 
 # initialize user inputs for home page
 students_name = input("What is your name? ")
@@ -242,13 +269,13 @@ students_failing = float(students_GPA) < 2.0
 
 # tests
 assert_equal(
- index(State(student_name='ryder', current_GPA=3.5, target_GPA=4.0, is_failing=False, courses=[], threshold_test_scores=[])),
+ index(State(student_name='ryder', current_GPA=3.5, target_GPA=4.0, is_failing=False, courses=[], all_test_scores={})),
  Page(state=State(student_name='ryder',
                  current_GPA=3.5,
                  target_GPA=4.0,
                  is_failing=False,
                  courses=[],
-                 threshold_test_scores=[]),
+                 all_test_scores={}),
      content=[Header(body='Welcome, ryder.', level=1),
               'Your GPA: 3.5',
               Button(text='Add Course', url='/add_course'),
@@ -258,13 +285,13 @@ assert_equal(
               Button(text='View Progress', url='/view_progress')]))
 
 assert_equal(
- add_course(State(student_name='ryder', current_GPA=3.5, target_GPA=4.0, is_failing=False, courses=[], threshold_test_scores=[])),
+ add_course(State(student_name='ryder', current_GPA=3.5, target_GPA=4.0, is_failing=False, courses=[], all_test_scores={})),
  Page(state=State(student_name='ryder',
                  current_GPA=3.5,
                  target_GPA=4.0,
                  is_failing=False,
                  courses=[],
-                 threshold_test_scores=[]),
+                 all_test_scores={}),
      content=['Name of Course:',
               TextBox(name='course_name', kind='text', default_value=''),
               'Number of Credits:',
@@ -275,13 +302,13 @@ assert_equal(
               Button(text='Cancel', url='/')]))
 
 assert_equal(
- index(State(student_name='ryder', current_GPA=3.5, target_GPA=4.0, is_failing=False, courses=[], threshold_test_scores=[])),
+ index(State(student_name='ryder', current_GPA=3.5, target_GPA=4.0, is_failing=False, courses=[], all_test_scores={})),
  Page(state=State(student_name='ryder',
                  current_GPA=3.5,
                  target_GPA=4.0,
                  is_failing=False,
                  courses=[],
-                 threshold_test_scores=[]),
+                 all_test_scores={}),
      content=[Header(body='Welcome, ryder.', level=1),
               'Your GPA: 3.5',
               Button(text='Add Course', url='/add_course'),
@@ -290,4 +317,4 @@ assert_equal(
               Button(text='Add Test Score', url='/add_test_score'),
               Button(text='View Progress', url='/view_progress')]))
 
-start_server(State(students_name, float(students_GPA), float(students_target_GPA), students_failing, [], []))
+start_server(State(students_name, float(students_GPA), float(students_target_GPA), students_failing, [], {}))

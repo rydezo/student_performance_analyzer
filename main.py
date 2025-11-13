@@ -6,7 +6,6 @@ from drafter import *
 class Course:
     course_name: str
     credits: int
-    # convert to letter grade when displaying to user
     current_grade: float
     test_scores: list[float]
 

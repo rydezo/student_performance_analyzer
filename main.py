@@ -201,12 +201,12 @@ def update_GPA(state: State):
         total_credits += course.credits
     
     state.current_GPA = round(total_grade_points/total_credits, 2)
+    state.is_failing = state.current_GPA < 2.0
 
 
 # page 6
 @route
 def view_progress(state: State) -> Page:
-    state.is_failing = state.current_GPA < 2.0
     if state.is_failing:
         pass_status = "failing"
     else:

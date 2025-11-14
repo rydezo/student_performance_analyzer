@@ -50,8 +50,19 @@ def add_course(state: State) -> Page:
 
 # route 7
 @route
-def append_course(state: State, course_name: str, credits: int, current_grade: float) -> Page:
-    new_course = Course(course_name, credits, current_grade, [])
+def append_course(state: State, course_name: str, credits: str, current_grade: str) -> Page:
+    # check for valid inputs
+    try:
+        course_credits = int(credits)
+        course_grade = float(current_grade)
+    except:
+        return Page(
+            state,
+            content=["Invalid input(s). Please try again.",
+             Button("Add Course", "/add_course"),
+             Button("Go to Home", "/index")]
+        )
+    new_course = Course(course_name, course_credits, course_grade, [])
     state.courses.append(new_course)
     update_GPA(state)
     return index(state)
@@ -134,9 +145,19 @@ def update_grade(state: State) -> Page:
 
 @route
 def change_grade(state: State, updated_course: str, new_grade: str):
+    # check valid input
+    try:
+        float_grade = float(new_grade)
+    except:
+        return Page(
+            state,
+            content=["Invalid grade input. Please try again.",
+             Button("Update a Grade", "/update_grade"),
+             Button("Go to Home", "/index")]
+        )
     for course in state.courses:
         if course.course_name == updated_course:
-            course.current_grade = float(new_grade)
+            course.current_grade = float_grade
             update_GPA(state)
     return index(state)
 
@@ -163,21 +184,24 @@ def add_test_score(state: State) -> Page:
 
 @route
 def append_score(state: State, course_for_score: str, test_score: str):
-    if course_for_score.lower() not in [course.course_name.lower() for course in state.courses]:
+    # check valid input
+    try:
+        float_score = float(test_score)
+    except:
         return Page(
             state,
-            content=["Invalid course name. Please try again.",
-             Button("Add Course", "/add_course"),
+            content=["Invalid test score input. Please try again.",
+             Button("Add Test Score", "/add_test_score"),
              Button("Go to Home", "/index")]
         )
     
     for course in state.courses:
         if course.course_name == course_for_score:
-            course.test_scores.append(float(test_score))
+            course.test_scores.append(float_score)
             if course.course_name not in state.all_test_scores:
-                state.all_test_scores[course.course_name] = [float(test_score)]
+                state.all_test_scores[course.course_name] = [float_score]
             else:
-                state.all_test_scores[course.course_name].append(float(test_score))
+                state.all_test_scores[course.course_name].append(float_score)
             # update course grade and GPA
             course.current_grade = round(sum(course.test_scores)/len(course.test_scores), 2)
             update_GPA(state)

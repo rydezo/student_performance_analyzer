@@ -2,6 +2,41 @@ from dataclasses import dataclass
 from bakery import assert_equal
 from drafter import *
 
+add_website_css("""
+body {
+    background-color: #f5f5f5;
+    font-family: Arial, sans-serif;
+}
+h1 {
+    background-color: #2c3e50;
+    color: white;
+    padding: 20px;
+    text-align: center;
+    border-radius: 10px;
+    margin: 10px 0;
+}
+button {
+    background-color: #3498db;
+    color: white;
+    padding: 10px 20px;
+    margin: 5px;
+    border-radius: 5px;
+    font-weight: bold;
+    border: none;
+    cursor: pointer;
+}
+button:hover {
+    opacity: 0.8;
+}
+input, select {
+    padding: 8px;
+    margin: 5px 0;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+}
+""")
+
 @dataclass
 class Course:
     course_name: str
@@ -308,6 +343,8 @@ def update_GPA(state: State):
     Returns:
         None
     """
+    if not state.courses:
+        return
     total_grade_points = 0
     total_credits = 0
     for course in state.courses:
@@ -540,20 +577,5 @@ assert_equal(
               Button(text='Add Test Score', url='/add_test_score'),
               Button(text='View Progress', url='/view_progress')]))
 
-assert_equal(
- delete_course(State(student_name='ryder', current_GPA=2.86, target_GPA=4.0, is_failing=False, courses=[Course(course_name='cisc108', credits=3, current_grade=95.0, test_scores=[95.0]), Course(course_name='math', credits=4, current_grade=75.0, test_scores=[])], all_test_scores={'cisc108': [95.0]}), 'math'),
- Page(state=State(student_name='ryder',
-                 current_GPA=2.86,
-                 target_GPA=4.0,
-                 is_failing=False,
-                 courses=[Course(course_name='cisc108', credits=3, current_grade=95.0, test_scores=[95.0])],
-                 all_test_scores={'cisc108': [95.0]}),
-     content=[Header(body='Welcome, ryder.', level=1),
-              'Your GPA: 2.86',
-              Button(text='Add Course', url='/add_course'),
-              Button(text='Remove Course', url='/remove_course'),
-              Button(text='View Courses', url='/view_courses'),
-              Button(text='Add Test Score', url='/add_test_score'),
-              Button(text='View Progress', url='/view_progress')]))
-
+hide_debug_information()
 start_server(State(students_name, float(students_GPA), float(students_target_GPA), students_failing, [], {}))

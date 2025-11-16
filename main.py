@@ -18,9 +18,16 @@ class State:
     courses: list[Course]
     all_test_scores: dict[str, list[float]]
 
-# page 1
 @route
 def index(state: State) -> Page:
+    """
+    Home page showing welcome message, current GPA, and navigation buttons.
+
+    Args:
+        state (State): The current state of the application, including student information.
+    Returns:
+        Page: The home page with welcome message, GPA, and navigation buttons.
+    """
     return Page(
         state,
         content=[
@@ -34,9 +41,16 @@ def index(state: State) -> Page:
             Button("View Progress", "/view_progress")]
     )
 
-# page 2
 @route
 def add_course(state: State) -> Page:
+    """
+    Page to add a new course with input fields for course name, credits, and current grade.
+
+    Args:
+        state (State): The current state of the application.
+    Returns:
+        Page: The page with input fields to add a new course.
+    """
     return Page(
         state,
         content=[
@@ -48,9 +62,19 @@ def add_course(state: State) -> Page:
         ]
     )
 
-# route 7
 @route
 def append_course(state: State, course_name: str, credits: str, current_grade: str) -> Page:
+    """
+    Appends a new course to the state after validating inputs.
+
+    Args:
+        state (State): The current state of the application.
+        course_name (str): The name of the course to be added.
+        credits (str): The number of credits for the course.
+        current_grade (str): The current grade for the course.
+    Returns:
+        Page: The updated home page after adding the course or an error message if inputs are invalid.
+    """
     # check for valid inputs
     try:
         course_credits = int(credits)
@@ -67,9 +91,16 @@ def append_course(state: State, course_name: str, credits: str, current_grade: s
     update_GPA(state)
     return index(state)
 
-# page 3
 @route
 def remove_course(state: State) -> Page:
+    """
+    Page to remove an existing course by specifying its name.
+
+    Args:
+        state (State): The current state of the application.
+    Returns:
+        Page: The page with input field to remove a course.
+    """
     return Page(
         state,
         content=[
@@ -81,14 +112,30 @@ def remove_course(state: State) -> Page:
 
 @route
 def delete_course(state: State, course_name: str) -> Page:
+    """
+    Deletes a course from the state based on the provided course name.
+    
+    Args:
+        state (State): The current state of the application.
+        course_name (str): The name of the course to be removed.
+    Returns:
+        Page: The updated home page after removing the course.
+    """
     for course in state.courses:
         if course.course_name == course_name:
             state.courses.remove(course)
     return index(state)
 
-# page 4
 @route
 def view_courses(state: State) -> Page:
+    """
+    Page to view all added courses along with their details.
+
+    Args:
+        state (State): The current state of the application.
+    Returns:
+        Page: The page displaying all courses with their names, credits, grades, and test scores
+    """
     if not state.courses:
         return Page(
             state,
@@ -119,6 +166,14 @@ def view_courses(state: State) -> Page:
         )
 
 def get_letter_grade(course: Course) -> str:
+    """
+    Converts a numeric grade to a letter grade.
+
+    Args:
+        course (Course): The course object containing the current grade.
+    Returns:
+        str: The letter grade corresponding to the numeric grade.
+    """
     letter_grades = {
         "A": range(90,101),
         "B": range(80,90),
@@ -132,6 +187,14 @@ def get_letter_grade(course: Course) -> str:
 
 @route
 def update_grade(state: State) -> Page:
+    """
+    Page to update the grade of an existing course.
+
+    Args:
+        state (State): The current state of the application.
+    Returns:
+        Page: The page with input fields to update a course's grade.
+    """
     courses_names: list[str] = [course.course_name for course in state.courses]
     return Page(
         state,
@@ -145,6 +208,16 @@ def update_grade(state: State) -> Page:
 
 @route
 def change_grade(state: State, updated_course: str, new_grade: str):
+    """
+    Updates the grade of a specified course after validating the input.
+
+    Args:
+        state (State): The current state of the application.
+        updated_course (str): The name of the course to be updated.
+        new_grade (str): The new grade to be set for the course.
+    Returns:
+        Page: The updated home page after changing the course grade or an error message if input is
+    """
     # check valid input
     try:
         float_grade = float(new_grade)
@@ -161,9 +234,16 @@ def change_grade(state: State, updated_course: str, new_grade: str):
             update_GPA(state)
     return index(state)
 
-# page 5
 @route
 def add_test_score(state: State) -> Page:
+    """
+    Page to add a test score for an existing course.
+
+    Args:
+        state (State): The current state of the application.
+    Returns:
+        Page: The page with input fields to add a test score to a course.
+    """
     if not state.courses:
         return Page(
             state,
@@ -184,6 +264,16 @@ def add_test_score(state: State) -> Page:
 
 @route
 def append_score(state: State, course_for_score: str, test_score: str):
+    """
+    Appends a test score to the specified course after validating the input.
+
+    Args:
+        state (State): The current state of the application.
+        course_for_score (str): The name of the course to which the test score will be added.
+        test_score (str): The test score to be added.
+    Returns:
+        Page: The updated home page after adding the test score or an error message if input is
+    """
     # check valid input
     try:
         float_score = float(test_score)
@@ -209,6 +299,14 @@ def append_score(state: State, course_for_score: str, test_score: str):
     return index(state)
 
 def update_GPA(state: State):
+    """
+    Updates the current GPA of the student based on their courses and grades.
+
+    Args:
+        state (State): The current state of the application.
+    Returns:
+        None
+    """
     total_grade_points = 0
     total_credits = 0
     for course in state.courses:
@@ -228,10 +326,16 @@ def update_GPA(state: State):
     state.current_GPA = round(total_grade_points/total_credits, 2)
     state.is_failing = state.current_GPA < 2.0
 
-
-# page 6
 @route
 def view_progress(state: State) -> Page:
+    """
+    Page to view overall progress including GPA, pass/fail status
+
+    Args:
+        state (State): The current state of the application.
+    Returns:
+        Page: The page displaying overall progress details.
+    """
     if state.is_failing:
         pass_status = "failing. You need to lock in!"
     else:
@@ -262,6 +366,14 @@ def view_progress(state: State) -> Page:
     )
 
 def get_highest_score(state: State) -> tuple:
+    """
+    Retrieves the highest test score and its corresponding course.
+
+    Args:
+        state (State): The current state of the application.
+    Returns:
+        tuple: A tuple containing the highest test score as a string with '%' and the course name
+    """
     if not state.all_test_scores:
         return (None, None)
     highest_score = 0
@@ -274,6 +386,14 @@ def get_highest_score(state: State) -> tuple:
     return (f'{highest_score}%', course_of_highest)
 
 def get_lowest_score(state: State) -> tuple:
+    """
+    Retrieves the lowest test score and its corresponding course.
+    
+    Args:
+        state (State): The current state of the application.
+    Returns:
+        tuple: A tuple containing the lowest test score as a string with '%' and the course name
+    """
     if not state.all_test_scores:
         return (None, None)
     lowest_score = 100

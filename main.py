@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from bakery import assert_equal
 from drafter import *
 
+# styling
 add_website_css("""
 body {
     background-color: #f5f5f5;

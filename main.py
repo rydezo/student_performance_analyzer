@@ -672,7 +672,334 @@ assert_equal(
     ),
 )
 
+assert_equal(
+    remove_course(
+        State(
+            student_name='ryder',
+            current_GPA=3.5,
+            target_GPA=4.0,
+            is_failing=False,
+            courses=[Course(course_name='cisc108', credits=3, current_grade=100.0, test_scores=[])],
+            all_test_scores={},
+        )
+    ),
+    Page(
+        state=State(
+            student_name='ryder',
+            current_GPA=3.5,
+            target_GPA=4.0,
+            is_failing=False,
+            courses=[Course(course_name='cisc108', credits=3, current_grade=100.0, test_scores=[])],
+            all_test_scores={},
+        ),
+        content=[
+            'Name of Course:',
+            TextBox(name='course_name', kind='text', default_value=''),
+            Button(text='Remove Course', url='/delete_course'),
+            Button(text='Cancel', url='/index'),
+        ],
+    ),
+)
+
+test_state_invalid_credits = State(
+    student_name='alice',
+    current_GPA=3.0,
+    target_GPA=4.0,
+    is_failing=False,
+    courses=[],
+    all_test_scores={}
+)
+assert_equal(
+    append_course(test_state_invalid_credits, 'math101', 'not_a_number', '85.0'),
+    Page(
+        state=test_state_invalid_credits,
+        content=[
+            "Invalid input(s). Please try again.",
+            Button("Add Course", "/add_course"),
+            Button("Go to Home", "/index"),
+        ],
+    ),
+)
+
+test_state_invalid_grade = State(
+    student_name='bob',
+    current_GPA=3.0,
+    target_GPA=4.0,
+    is_failing=False,
+    courses=[],
+    all_test_scores={}
+)
+assert_equal(
+    append_course(test_state_invalid_grade, 'chem101', '3', 'invalid_grade'),
+    Page(
+        state=test_state_invalid_grade,
+        content=[
+            "Invalid input(s). Please try again.",
+            Button("Add Course", "/add_course"),
+            Button("Go to Home", "/index"),
+        ],
+    ),
+)
+
+test_state_invalid_change = State(
+    student_name='carol',
+    current_GPA=3.0,
+    target_GPA=4.0,
+    is_failing=False,
+    courses=[Course(course_name='phys101', credits=3, current_grade=85.0, test_scores=[])],
+    all_test_scores={},
+)
+assert_equal(
+    change_grade(test_state_invalid_change, 'phys101', 'not_valid'),
+    Page(
+        state=test_state_invalid_change,
+        content=[
+            "Invalid grade input. Please try again.",
+            Button("Update a Grade", "/update_grade"),
+            Button("Go to Home", "/index"),
+        ],
+    ),
+)
+
+assert_equal(
+    view_courses(
+        State(
+            student_name='dan',
+            current_GPA=0.0,
+            target_GPA=4.0,
+            is_failing=True,
+            courses=[],
+            all_test_scores={},
+        )
+    ),
+    Page(
+        state=State(
+            student_name='dan',
+            current_GPA=0.0,
+            target_GPA=4.0,
+            is_failing=True,
+            courses=[],
+            all_test_scores={},
+        ),
+        content=[
+            "You currently have no courses added. Please add some to view them.",
+            Button("Add Course", "/add_course"),
+            Button("Go to Home", "/index"),
+        ],
+    ),
+)
+
+assert_equal(
+    add_test_score(
+        State(
+            student_name='eve',
+            current_GPA=0.0,
+            target_GPA=4.0,
+            is_failing=True,
+            courses=[],
+            all_test_scores={},
+        )
+    ),
+    Page(
+        state=State(
+            student_name='eve',
+            current_GPA=0.0,
+            target_GPA=4.0,
+            is_failing=True,
+            courses=[],
+            all_test_scores={},
+        ),
+        content=[
+            "You currently have no courses added. Please add some to add test scores.",
+            Button("Add Course", "/add_course"),
+            Button("Go to Home", "/index"),
+        ],
+    ),
+)
+
 # additional tests to increase coverage
+
+# Test get_letter_grade for all grade ranges
+test_course_a = Course(course_name='test_a', credits=3, current_grade=95.0, test_scores=[])
+assert_equal(get_letter_grade(test_course_a), 'A')
+
+test_course_b = Course(course_name='test_b', credits=3, current_grade=85.0, test_scores=[])
+assert_equal(get_letter_grade(test_course_b), 'B')
+
+test_course_c = Course(course_name='test_c', credits=3, current_grade=75.0, test_scores=[])
+assert_equal(get_letter_grade(test_course_c), 'C')
+
+test_course_d = Course(course_name='test_d', credits=3, current_grade=65.0, test_scores=[])
+assert_equal(get_letter_grade(test_course_d), 'D')
+
+test_course_f = Course(course_name='test_f', credits=3, current_grade=55.0, test_scores=[])
+assert_equal(get_letter_grade(test_course_f), 'F')
+
+# Test view_progress with failing status
+test_state_failing = State(
+    student_name='failing_student',
+    current_GPA=1.5,
+    target_GPA=3.0,
+    is_failing=True,
+    courses=[Course(course_name='hard_class', credits=3, current_grade=65.0, test_scores=[65.0])],
+    all_test_scores={'hard_class': [65.0]},
+)
+assert_equal(
+    view_progress(test_state_failing),
+    Page(
+        state=test_state_failing,
+        content=[
+            'Your GPA is 1.5.',
+            'You are currently failing. You need to lock in!',
+            'You are 1.5 points away from your target GPA (3.0).',
+            'Your course with the highest grade: hard_class (65.0%)',
+            'Your course with the lowest grade: hard_class (65.0%)',
+            "Highest test score: ('65.0%', 'hard_class')",
+            "Lowest test score: ('65.0%', 'hard_class')",
+            Button(text='Go to Home', url='/'),
+        ],
+    ),
+)
+
+# Test update_GPA with all different grade point ranges
+test_state_all_grades = State(
+    student_name='multi_grade',
+    current_GPA=0.0,
+    target_GPA=4.0,
+    is_failing=True,
+    courses=[
+        Course(course_name='a_class', credits=3, current_grade=92.0, test_scores=[]),  # 4.0
+        Course(course_name='b_class', credits=3, current_grade=85.0, test_scores=[]),  # 3.0
+        Course(course_name='c_class', credits=3, current_grade=75.0, test_scores=[]),  # 2.0
+        Course(course_name='d_class', credits=3, current_grade=65.0, test_scores=[]),  # 1.0
+        Course(course_name='f_class', credits=3, current_grade=50.0, test_scores=[]),  # 0.0
+    ],
+    all_test_scores={},
+)
+update_GPA(test_state_all_grades)
+assert_equal(test_state_all_grades.current_GPA, 2.0)  # (4.0*3 + 3.0*3 + 2.0*3 + 1.0*3 + 0.0*3) / 15 = 30/15 = 2.0
+assert_equal(test_state_all_grades.is_failing, False)
+
+# Test update_GPA when courses list is empty
+test_state_no_courses = State(
+    student_name='no_courses',
+    current_GPA=0.0,
+    target_GPA=4.0,
+    is_failing=True,
+    courses=[],
+    all_test_scores={},
+)
+update_GPA(test_state_no_courses)
+assert_equal(test_state_no_courses.current_GPA, 0.0)  # Should remain unchanged
+
+# Test delete_course when course doesn't exist
+test_state_delete_nonexistent = State(
+    student_name='delete_test',
+    current_GPA=3.0,
+    target_GPA=4.0,
+    is_failing=False,
+    courses=[Course(course_name='existing', credits=3, current_grade=85.0, test_scores=[])],
+    all_test_scores={},
+)
+result = delete_course(test_state_delete_nonexistent, 'nonexistent_course')
+# Course list should remain unchanged
+assert_equal(len(test_state_delete_nonexistent.courses), 1)
+assert_equal(test_state_delete_nonexistent.courses[0].course_name, 'existing')
+
+# Test get_highest_score and get_lowest_score with multiple courses
+test_state_multi_scores = State(
+    student_name='multi_test',
+    current_GPA=3.0,
+    target_GPA=4.0,
+    is_failing=False,
+    courses=[
+        Course(course_name='course1', credits=3, current_grade=90.0, test_scores=[85.0, 95.0]),
+        Course(course_name='course2', credits=3, current_grade=80.0, test_scores=[70.0, 90.0]),
+        Course(course_name='course3', credits=3, current_grade=75.0, test_scores=[60.0, 80.0]),
+    ],
+    all_test_scores={
+        'course1': [85.0, 95.0],
+        'course2': [70.0, 90.0],
+        'course3': [60.0, 80.0],
+    },
+)
+assert_equal(get_highest_score(test_state_multi_scores), ('95.0%', 'course1'))
+assert_equal(get_lowest_score(test_state_multi_scores), ('60.0%', 'course3'))
+
+# Test view_progress with multiple courses to verify highest/lowest course detection
+test_state_multi_courses = State(
+    student_name='multi_courses',
+    current_GPA=3.0,
+    target_GPA=3.5,
+    is_failing=False,
+    courses=[
+        Course(course_name='high_course', credits=3, current_grade=95.0, test_scores=[95.0]),
+        Course(course_name='mid_course', credits=3, current_grade=85.0, test_scores=[85.0]),
+        Course(course_name='low_course', credits=3, current_grade=75.0, test_scores=[75.0]),
+    ],
+    all_test_scores={
+        'high_course': [95.0],
+        'mid_course': [85.0],
+        'low_course': [75.0],
+    },
+)
+assert_equal(
+    view_progress(test_state_multi_courses),
+    Page(
+        state=test_state_multi_courses,
+        content=[
+            'Your GPA is 3.0.',
+            'You are currently passing. Good job!',
+            'You are 0.5 points away from your target GPA (3.5).',
+            'Your course with the highest grade: high_course (95.0%)',
+            'Your course with the lowest grade: low_course (75.0%)',
+            "Highest test score: ('95.0%', 'high_course')",
+            "Lowest test score: ('75.0%', 'low_course')",
+            Button(text='Go to Home', url='/'),
+        ],
+    ),
+)
+
+# Test append_score updates course grade correctly with multiple scores
+test_state_multi_test_scores = State(
+    student_name='test_scores',
+    current_GPA=4.0,
+    target_GPA=4.0,
+    is_failing=False,
+    courses=[Course(course_name='calc', credits=3, current_grade=90.0, test_scores=[90.0])],
+    all_test_scores={'calc': [90.0]},
+)
+append_score(test_state_multi_test_scores, 'calc', '80.0')
+# Average should be (90.0 + 80.0) / 2 = 85.0
+assert_equal(test_state_multi_test_scores.courses[0].current_grade, 85.0)
+assert_equal(test_state_multi_test_scores.courses[0].test_scores, [90.0, 80.0])
+assert_equal(test_state_multi_test_scores.all_test_scores['calc'], [90.0, 80.0])
+
+# Test update_GPA sets is_failing correctly when GPA drops below 2.0
+test_state_failing_gpa = State(
+    student_name='failing_gpa',
+    current_GPA=4.0,
+    target_GPA=4.0,
+    is_failing=False,
+    courses=[Course(course_name='fail_course', credits=3, current_grade=55.0, test_scores=[])],
+    all_test_scores={},
+)
+update_GPA(test_state_failing_gpa)
+assert_equal(test_state_failing_gpa.current_GPA, 0.0)
+assert_equal(test_state_failing_gpa.is_failing, True)
+
+# Test update_GPA at exact boundary (2.0 should not be failing)
+test_state_boundary = State(
+    student_name='boundary',
+    current_GPA=0.0,
+    target_GPA=4.0,
+    is_failing=True,
+    courses=[Course(course_name='c_course', credits=3, current_grade=70.0, test_scores=[])],
+    all_test_scores={},
+)
+update_GPA(test_state_boundary)
+assert_equal(test_state_boundary.current_GPA, 2.0)
+assert_equal(test_state_boundary.is_failing, False)
 
 # append_course with valid inputs adds a course and updates GPA
 test_state = State(

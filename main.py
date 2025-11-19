@@ -392,11 +392,12 @@ def view_progress(state: State) -> Page:
         if course.current_grade < low_course.current_grade:
             low_course = course
 
+    points_away = round((state.target_GPA - state.current_GPA), 1)
     return Page(
         state,
         content=[f"Your GPA is {state.current_GPA}.",
             f"You are currently {pass_status}",
-            f"You are {round((state.target_GPA - state.current_GPA), 1)} points away from your target GPA ({state.target_GPA}).",
+            f"You are {points_away} points away from your target GPA ({state.target_GPA}).",
             f"Your course with the highest grade: {high_course.course_name} ({high_course.current_grade}%)",
             f"Your course with the lowest grade: {low_course.course_name} ({low_course.current_grade}%)",
             f"Highest test score: {get_highest_score(state)}",
@@ -452,23 +453,40 @@ students_failing = float(students_GPA) < 2.0
 
 # tests
 assert_equal(
- index(State(student_name='ryder', current_GPA=3.5, target_GPA=4.0, is_failing=False, courses=[], all_test_scores={})),
- Page(state=State(student_name='ryder',
-                 current_GPA=3.5,
-                 target_GPA=4.0,
-                 is_failing=False,
-                 courses=[],
-                 all_test_scores={}),
-     content=[Header(body='Welcome, ryder.', level=1),
-              'Your GPA: 3.5',
-              Button(text='Add Course', url='/add_course'),
-              Button(text='Remove Course', url='/remove_course'),
-              Button(text='View Courses', url='/view_courses'),
-              Button(text='Add Test Score', url='/add_test_score'),
-              Button(text='View Progress', url='/view_progress')]))
+    index(
+        State(
+            student_name='ryder',
+            current_GPA=3.5,
+            target_GPA=4.0,
+            is_failing=False,
+            courses=[],
+            all_test_scores={},
+        ),
+    ),
+    Page(
+        state=State(
+            student_name='ryder',
+            current_GPA=3.5,
+            target_GPA=4.0,
+            is_failing=False,
+            courses=[],
+            all_test_scores={},
+        ),
+        content=[
+            Header(body='Welcome, ryder.', level=1),
+            'Your GPA: 3.5',
+            Button(text='Add Course', url='/add_course'),
+            Button(text='Remove Course', url='/remove_course'),
+            Button(text='View Courses', url='/view_courses'),
+            Button(text='Add Test Score', url='/add_test_score'),
+            Button(text='View Progress', url='/view_progress'),
+        ],
+    ),
+)
 
 assert_equal(
- add_course(State(student_name='ryder', current_GPA=3.5, target_GPA=4.0, is_failing=False, courses=[], all_test_scores={})),
+ add_course(State(student_name='ryder', current_GPA=3.5, target_GPA=4.0, is_failing=False, 
+                  courses=[], all_test_scores={})),
  Page(state=State(student_name='ryder',
                  current_GPA=3.5,
                  target_GPA=4.0,
@@ -485,22 +503,42 @@ assert_equal(
               Button(text='Cancel', url='/')]))
 
 assert_equal(
- view_courses(State(student_name='ryder', current_GPA=4.0, target_GPA=4.0, is_failing=False, courses=[Course(course_name='cisc108', credits=3, current_grade=100.0, test_scores=[])], all_test_scores={})),
- Page(state=State(student_name='ryder',
-                 current_GPA=4.0,
-                 target_GPA=4.0,
-                 is_failing=False,
-                 courses=[Course(course_name='cisc108', credits=3, current_grade=100.0, test_scores=[])],
-                 all_test_scores={}),
-     content=["Courses: ['cisc108: A']",
-              'Credits: [3]',
-              'Grades: [100.0]',
-              "Test Scores: ['cisc108 scores: []']",
-              Button(text='Update a Grade', url='/update_grade'),
-              Button(text='Go to Home', url='/')]))
+    view_courses(
+        State(
+            student_name='ryder',
+            current_GPA=4.0,
+            target_GPA=4.0,
+            is_failing=False,
+            courses=[
+                Course(course_name='cisc108', credits=3, current_grade=100.0, test_scores=[]),
+            ],
+            all_test_scores={},
+        ),
+    ),
+    Page(
+        state=State(
+            student_name='ryder',
+            current_GPA=4.0,
+            target_GPA=4.0,
+            is_failing=False,
+            courses=[Course(course_name='cisc108', credits=3, current_grade=100.0, test_scores=[])],
+            all_test_scores={},
+        ),
+        content=[
+            "Courses: ['cisc108: A']",
+            'Credits: [3]',
+            'Grades: [100.0]',
+            "Test Scores: ['cisc108 scores: []']",
+            Button(text='Update a Grade', url='/update_grade'),
+            Button(text='Go to Home', url='/'),
+        ],
+    ),
+)
 
 assert_equal(
- update_grade(State(student_name='ryder', current_GPA=4.0, target_GPA=4.0, is_failing=False, courses=[Course(course_name='cisc108', credits=3, current_grade=100.0, test_scores=[])], all_test_scores={})),
+ update_grade(State(student_name='ryder', current_GPA=4.0, target_GPA=4.0, is_failing=False, 
+                    courses=[Course(course_name='cisc108', credits=3, current_grade=100.0, 
+                                    test_scores=[])], all_test_scores={})),
  Page(state=State(student_name='ryder',
                  current_GPA=4.0,
                  target_GPA=4.0,
@@ -515,7 +553,9 @@ assert_equal(
               Button(text='Cancel', url='/')]))
 
 assert_equal(
- add_test_score(State(student_name='ryder', current_GPA=4.0, target_GPA=4.0, is_failing=False, courses=[Course(course_name='cisc108', credits=3, current_grade=90.0, test_scores=[])], all_test_scores={})),
+ add_test_score(State(student_name='ryder', current_GPA=4.0, target_GPA=4.0, is_failing=False, 
+                      courses=[Course(course_name='cisc108', credits=3, current_grade=90.0, 
+                                      test_scores=[])], all_test_scores={})),
  Page(state=State(student_name='ryder',
                  current_GPA=4.0,
                  target_GPA=4.0,
@@ -530,93 +570,244 @@ assert_equal(
               Button(text='Cancel', url='/')]))
 
 assert_equal(
- append_score(State(student_name='ryder', current_GPA=4.0, target_GPA=4.0, is_failing=False, courses=[Course(course_name='cisc108', credits=3, current_grade=90.0, test_scores=[])], all_test_scores={}), 'cisc108', '95.0'),
- Page(state=State(student_name='ryder',
-                 current_GPA=4.0,
-                 target_GPA=4.0,
-                 is_failing=False,
-                 courses=[Course(course_name='cisc108', credits=3, current_grade=95.0, test_scores=[95.0])],
-                 all_test_scores={'cisc108': [95.0]}),
-     content=[Header(body='Welcome, ryder.', level=1),
-              'Your GPA: 4.0',
-              Button(text='Add Course', url='/add_course'),
-              Button(text='Remove Course', url='/remove_course'),
-              Button(text='View Courses', url='/view_courses'),
-              Button(text='Add Test Score', url='/add_test_score'),
-              Button(text='View Progress', url='/view_progress')]))
+    append_score(
+        State(
+            student_name='ryder',
+            current_GPA=4.0,
+            target_GPA=4.0,
+            is_failing=False,
+            courses=[
+                Course(course_name='cisc108', credits=3, current_grade=90.0, test_scores=[]),
+            ],
+            all_test_scores={},
+        ),
+        'cisc108',
+        '95.0',
+    ),
+    Page(
+        state=State(
+            student_name='ryder',
+            current_GPA=4.0,
+            target_GPA=4.0,
+            is_failing=False,
+            courses=[Course(course_name='cisc108', credits=3, current_grade=95.0, test_scores=[95.0])],
+            all_test_scores={'cisc108': [95.0]},
+        ),
+        content=[
+            Header(body='Welcome, ryder.', level=1),
+            'Your GPA: 4.0',
+            Button(text='Add Course', url='/add_course'),
+            Button(text='Remove Course', url='/remove_course'),
+            Button(text='View Courses', url='/view_courses'),
+            Button(text='Add Test Score', url='/add_test_score'),
+            Button(text='View Progress', url='/view_progress'),
+        ],
+    ),
+)
 
 assert_equal(
- view_progress(State(student_name='ryder', current_GPA=4.0, target_GPA=4.0, is_failing=False, courses=[Course(course_name='cisc108', credits=3, current_grade=95.0, test_scores=[95.0])], all_test_scores={'cisc108': [95.0]})),
- Page(state=State(student_name='ryder',
-                 current_GPA=4.0,
-                 target_GPA=4.0,
-                 is_failing=False,
-                 courses=[Course(course_name='cisc108', credits=3, current_grade=95.0, test_scores=[95.0])],
-                 all_test_scores={'cisc108': [95.0]}),
-     content=['Your GPA is 4.0.',
-              'You are currently passing. Good job!',
-              'You are 0.0 points away from your target GPA (4.0).',
-              'Your course with the highest grade: cisc108 (95.0%)',
-              'Your course with the lowest grade: cisc108 (95.0%)',
-              "Highest test score: ('95.0%', 'cisc108')",
-              "Lowest test score: ('95.0%', 'cisc108')",
-              Button(text='Go to Home', url='/')]))
+    view_progress(
+        State(
+            student_name='ryder',
+            current_GPA=4.0,
+            target_GPA=4.0,
+            is_failing=False,
+            courses=[Course(course_name='cisc108', credits=3, current_grade=95.0, test_scores=[95.0])],
+            all_test_scores={'cisc108': [95.0]},
+        ),
+    ),
+    Page(
+        state=State(
+            student_name='ryder',
+            current_GPA=4.0,
+            target_GPA=4.0,
+            is_failing=False,
+            courses=[Course(course_name='cisc108', credits=3, current_grade=95.0, test_scores=[95.0])],
+            all_test_scores={'cisc108': [95.0]},
+        ),
+        content=[
+            'Your GPA is 4.0.',
+            'You are currently passing. Good job!',
+            'You are 0.0 points away from your target GPA (4.0).',
+            'Your course with the highest grade: cisc108 (95.0%)',
+            'Your course with the lowest grade: cisc108 (95.0%)',
+            "Highest test score: ('95.0%', 'cisc108')",
+            "Lowest test score: ('95.0%', 'cisc108')",
+            Button(text='Go to Home', url='/'),
+        ],
+    ),
+)
 
 assert_equal(
- index(State(student_name='ryder', current_GPA=4.0, target_GPA=4.0, is_failing=False, courses=[Course(course_name='cisc108', credits=3, current_grade=95.0, test_scores=[95.0])], all_test_scores={'cisc108': [95.0]})),
- Page(state=State(student_name='ryder',
-                 current_GPA=4.0,
-                 target_GPA=4.0,
-                 is_failing=False,
-                 courses=[Course(course_name='cisc108', credits=3, current_grade=95.0, test_scores=[95.0])],
-                 all_test_scores={'cisc108': [95.0]}),
-     content=[Header(body='Welcome, ryder.', level=1),
-              'Your GPA: 4.0',
-              Button(text='Add Course', url='/add_course'),
-              Button(text='Remove Course', url='/remove_course'),
-              Button(text='View Courses', url='/view_courses'),
-              Button(text='Add Test Score', url='/add_test_score'),
-              Button(text='View Progress', url='/view_progress')]))
+    index(
+        State(
+            student_name='ryder',
+            current_GPA=4.0,
+            target_GPA=4.0,
+            is_failing=False,
+            courses=[
+                Course(course_name='cisc108', credits=3, current_grade=95.0, test_scores=[95.0]),
+            ],
+            all_test_scores={'cisc108': [95.0]},
+        ),
+    ),
+    Page(
+        state=State(
+            student_name='ryder',
+            current_GPA=4.0,
+            target_GPA=4.0,
+            is_failing=False,
+            courses=[Course(course_name='cisc108', credits=3, current_grade=95.0, test_scores=[95.0])],
+            all_test_scores={'cisc108': [95.0]},
+        ),
+        content=[
+            Header(body='Welcome, ryder.', level=1),
+            'Your GPA: 4.0',
+            Button(text='Add Course', url='/add_course'),
+            Button(text='Remove Course', url='/remove_course'),
+            Button(text='View Courses', url='/view_courses'),
+            Button(text='Add Test Score', url='/add_test_score'),
+            Button(text='View Progress', url='/view_progress'),
+        ],
+    ),
+)
 
 # additional tests to increase coverage
 
 # append_course with valid inputs adds a course and updates GPA
-test_state = State(student_name='alice', current_GPA=0.0, target_GPA=4.0, is_failing=True, courses=[], all_test_scores={})
+test_state = State(
+    student_name='alice',
+    current_GPA=0.0,
+    target_GPA=4.0,
+    is_failing=True,
+    courses=[],
+    all_test_scores={}
+)
 assert_equal(
     append_course(test_state, 'math101', '3', '85.0'),
-    index(State(student_name='alice', current_GPA=3.0, target_GPA=4.0, is_failing=False, courses=[Course(course_name='math101', credits=3, current_grade=85.0, test_scores=[])], all_test_scores={}))
+    index(
+        State(
+            student_name='alice',
+            current_GPA=3.0,
+            target_GPA=4.0,
+            is_failing=False,
+            courses=[
+                Course(
+                    course_name='math101',
+                    credits=3,
+                    current_grade=85.0,
+                    test_scores=[],
+                )
+            ],
+            all_test_scores={}
+        )
+    ),
 )
 
 # change_grade with valid input updates the course and GPA
-test_state2 = State(student_name='bob', current_GPA=3.0, target_GPA=4.0, is_failing=False, courses=[Course(course_name='chem101', credits=3, current_grade=80.0, test_scores=[])], all_test_scores={})
+test_state2 = State(
+    student_name='bob',
+    current_GPA=3.0,
+    target_GPA=4.0,
+    is_failing=False,
+    courses=[Course(course_name='chem101', credits=3, current_grade=80.0, test_scores=[])],
+    all_test_scores={},
+)
 assert_equal(
     change_grade(test_state2, 'chem101', '92'),
-    index(State(student_name='bob', current_GPA=4.0, target_GPA=4.0, is_failing=False, courses=[Course(course_name='chem101', credits=3, current_grade=92.0, test_scores=[])], all_test_scores={}))
+    index(
+        State(
+            student_name='bob',
+            current_GPA=4.0,
+            target_GPA=4.0,
+            is_failing=False,
+            courses=[
+                Course(
+                    course_name='chem101',
+                    credits=3,
+                    current_grade=92.0,
+                    test_scores=[],
+                )
+            ],
+            all_test_scores={},
+        )
+    ),
 )
 
 # append_score with invalid input returns an error page
-test_state3 = State(student_name='carol', current_GPA=0.0, target_GPA=4.0, is_failing=True, courses=[Course(course_name='eng101', credits=3, current_grade=0.0, test_scores=[])], all_test_scores={})
+test_state3 = State(
+    student_name='carol',
+    current_GPA=0.0,
+    target_GPA=4.0,
+    is_failing=True,
+    courses=[Course(course_name='eng101', credits=3, current_grade=0.0, test_scores=[])],
+    all_test_scores={},
+)
 assert_equal(
     append_score(test_state3, 'eng101', 'not_a_number'),
-    Page(state=test_state3, content=["Invalid test score input. Please try again.", Button("Add Test Score", "/add_test_score"), Button("Go to Home", "/index")])
+    Page(
+        state=test_state3,
+        content=[
+            "Invalid test score input. Please try again.",
+            Button("Add Test Score", "/add_test_score"),
+            Button("Go to Home", "/index"),
+        ],
+    ),
 )
 
 # delete_course removes the named course and updates GPA
-test_state4 = State(student_name='dan', current_GPA=0.0, target_GPA=4.0, is_failing=True, courses=[Course(course_name='a', credits=3, current_grade=90.0, test_scores=[]), Course(course_name='b', credits=3, current_grade=70.0, test_scores=[])], all_test_scores={})
+test_state4 = State(
+    student_name='dan',
+    current_GPA=0.0,
+    target_GPA=4.0,
+    is_failing=True,
+    courses=[
+        Course(course_name='a', credits=3, current_grade=90.0, test_scores=[]),
+        Course(course_name='b', credits=3, current_grade=70.0, test_scores=[]),
+    ],
+    all_test_scores={},
+)
 assert_equal(
     delete_course(test_state4, 'a'),
-    index(State(student_name='dan', current_GPA=2.0, target_GPA=4.0, is_failing=False, courses=[Course(course_name='b', credits=3, current_grade=70.0, test_scores=[])], all_test_scores={}))
+    index(
+        State(
+            student_name='dan',
+            current_GPA=2.0,
+            target_GPA=4.0,
+            is_failing=False,
+            courses=[Course(course_name='b', credits=3, current_grade=70.0, test_scores=[])],
+            all_test_scores={},
+        )
+    ),
 )
 
 # get_highest_score / get_lowest_score on empty data
-empty_state = State(student_name='eve', current_GPA=0.0, target_GPA=4.0, is_failing=True, courses=[], all_test_scores={})
+empty_state = State(
+    student_name='eve', current_GPA=0.0, target_GPA=4.0, is_failing=True, courses=[], all_test_scores={}
+)
 assert_equal(get_highest_score(empty_state), (None, None))
 assert_equal(get_lowest_score(empty_state), (None, None))
 
 # get_highest_score / get_lowest_score on populated data
-pop_state = State(student_name='frank', current_GPA=0.0, target_GPA=4.0, is_failing=True, courses=[Course(course_name='x', credits=3, current_grade=90.0, test_scores=[88.0, 92.0])], all_test_scores={'x':[88.0,92.0]})
+pop_state = State(
+    student_name='frank',
+    current_GPA=0.0,
+    target_GPA=4.0,
+    is_failing=True,
+    courses=[Course(course_name='x', credits=3, current_grade=90.0, test_scores=[88.0, 92.0])],
+    all_test_scores={'x': [88.0, 92.0]},
+)
 assert_equal(get_highest_score(pop_state), ('92.0%', 'x'))
 assert_equal(get_lowest_score(pop_state), ('88.0%', 'x'))
 
 hide_debug_information()
-start_server(State(students_name, float(students_GPA), float(students_target_GPA), students_failing, [], {}))
+start_server(
+    State(
+        students_name,
+        float(students_GPA),
+        float(students_target_GPA),
+        students_failing,
+        [],
+        {},
+    ),
+)

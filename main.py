@@ -578,5 +578,45 @@ assert_equal(
               Button(text='Add Test Score', url='/add_test_score'),
               Button(text='View Progress', url='/view_progress')]))
 
+# additional tests to increase coverage
+
+# append_course with valid inputs adds a course and updates GPA
+test_state = State(student_name='alice', current_GPA=0.0, target_GPA=4.0, is_failing=True, courses=[], all_test_scores={})
+assert_equal(
+    append_course(test_state, 'math101', '3', '85.0'),
+    index(State(student_name='alice', current_GPA=3.0, target_GPA=4.0, is_failing=False, courses=[Course(course_name='math101', credits=3, current_grade=85.0, test_scores=[])], all_test_scores={}))
+)
+
+# change_grade with valid input updates the course and GPA
+test_state2 = State(student_name='bob', current_GPA=3.0, target_GPA=4.0, is_failing=False, courses=[Course(course_name='chem101', credits=3, current_grade=80.0, test_scores=[])], all_test_scores={})
+assert_equal(
+    change_grade(test_state2, 'chem101', '92'),
+    index(State(student_name='bob', current_GPA=4.0, target_GPA=4.0, is_failing=False, courses=[Course(course_name='chem101', credits=3, current_grade=92.0, test_scores=[])], all_test_scores={}))
+)
+
+# append_score with invalid input returns an error page
+test_state3 = State(student_name='carol', current_GPA=0.0, target_GPA=4.0, is_failing=True, courses=[Course(course_name='eng101', credits=3, current_grade=0.0, test_scores=[])], all_test_scores={})
+assert_equal(
+    append_score(test_state3, 'eng101', 'not_a_number'),
+    Page(state=test_state3, content=["Invalid test score input. Please try again.", Button("Add Test Score", "/add_test_score"), Button("Go to Home", "/index")])
+)
+
+# delete_course removes the named course and updates GPA
+test_state4 = State(student_name='dan', current_GPA=0.0, target_GPA=4.0, is_failing=True, courses=[Course(course_name='a', credits=3, current_grade=90.0, test_scores=[]), Course(course_name='b', credits=3, current_grade=70.0, test_scores=[])], all_test_scores={})
+assert_equal(
+    delete_course(test_state4, 'a'),
+    index(State(student_name='dan', current_GPA=2.0, target_GPA=4.0, is_failing=False, courses=[Course(course_name='b', credits=3, current_grade=70.0, test_scores=[])], all_test_scores={}))
+)
+
+# get_highest_score / get_lowest_score on empty data
+empty_state = State(student_name='eve', current_GPA=0.0, target_GPA=4.0, is_failing=True, courses=[], all_test_scores={})
+assert_equal(get_highest_score(empty_state), (None, None))
+assert_equal(get_lowest_score(empty_state), (None, None))
+
+# get_highest_score / get_lowest_score on populated data
+pop_state = State(student_name='frank', current_GPA=0.0, target_GPA=4.0, is_failing=True, courses=[Course(course_name='x', credits=3, current_grade=90.0, test_scores=[88.0, 92.0])], all_test_scores={'x':[88.0,92.0]})
+assert_equal(get_highest_score(pop_state), ('92.0%', 'x'))
+assert_equal(get_lowest_score(pop_state), ('88.0%', 'x'))
+
 hide_debug_information()
 start_server(State(students_name, float(students_GPA), float(students_target_GPA), students_failing, [], {}))

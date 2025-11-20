@@ -2,6 +2,19 @@ from dataclasses import dataclass
 from bakery import assert_equal
 from drafter import *
 
+# set up site metadata
+set_site_information(
+    author="rydero@udel.edu",
+    description="""Student can add/remove courses, record test scores, automatically calculate GPA, 
+    and view progress (highest/lowest scores and how far from the target GPA).""",
+    sources=["Official Drafter documentation only"],
+    planning=["design.jpg"],
+    links=["https://github.com/UD-F25-CS1/cs1-website-f25-rydezo/tree/main"]
+)
+hide_debug_information()
+set_website_title("Your Website Title")
+set_website_framed(False)
+
 # styling
 add_website_css("""
 body {
@@ -64,6 +77,10 @@ def index(state: State) -> Page:
     Returns:
         Page: The home page with welcome message, GPA, and navigation buttons.
     """
+    # If no student name set yet, show the web setup form.
+    if not state.student_name:
+        return setup(state)
+
     return Page(
         state,
         content=[
@@ -445,11 +462,59 @@ def get_lowest_score(state: State) -> tuple:
                 course_of_lowest = course_name
     return (f'{lowest_score}%', course_of_lowest)
 
-# initialize user inputs for home page
-students_name = input("What is your name? ")
-students_GPA = input("What is your current GPA? ")
-students_target_GPA = input("What is your target GPA? ")
-students_failing = float(students_GPA) < 2.0
+# Web-based setup for GitHub Pages / static hosting
+@route
+def setup(state: State) -> Page:
+    """
+    Setup page to collect student name, current GPA, and target GPA via web form.
+    """
+    return Page(
+        state,
+        content=[
+            "What's your name?", TextBox(name="students_name", default_value=""),
+            "Current GPA:", TextBox(name="students_GPA", default_value="0.0"),
+            "Target GPA:", TextBox(name="students_target_GPA", default_value="4.0"),
+            Button(text="Start", url="/start_app"),
+        ],
+    )
+
+
+@route
+def start_app(state: State, students_name: str, students_GPA: str, students_target_GPA: str) -> Page:
+    """
+    Handler for the setup form. Validates inputs and initializes the app state.
+    """
+    # validate name (allow spaces in names)
+    if not students_name or not students_name.replace(" ", "").isalpha():
+        return Page(
+            state,
+            content=[
+                "Please enter a valid name (letters and spaces only).",
+                Button("Back", "/setup"),
+            ],
+        )
+
+    # validate GPAs
+    try:
+        curr = float(students_GPA)
+        targ = float(students_target_GPA)
+        if not (0.0 <= curr <= 4.0 and 0.0 <= targ <= 4.0):
+            raise ValueError()
+    except ValueError:
+        return Page(
+            state,
+            content=[
+                "Please enter valid GPAs between 0.0 and 4.0.",
+                Button("Back", "/setup"),
+            ],
+        )
+
+    # initialize state and go to index
+    state.student_name = students_name
+    state.current_GPA = curr
+    state.target_GPA = targ
+    state.is_failing = curr < 2.0
+    return index(state)
 
 # tests
 assert_equal(
@@ -1127,13 +1192,12 @@ pop_state = State(
 assert_equal(get_highest_score(pop_state), ('92.0%', 'x'))
 assert_equal(get_lowest_score(pop_state), ('88.0%', 'x'))
 
-hide_debug_information()
 start_server(
     State(
-        students_name,
-        float(students_GPA),
-        float(students_target_GPA),
-        students_failing,
+        "",
+        0.0,
+        4.0,
+        True,
         [],
         {},
     ),

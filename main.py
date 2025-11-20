@@ -1192,6 +1192,54 @@ pop_state = State(
 assert_equal(get_highest_score(pop_state), ('92.0%', 'x'))
 assert_equal(get_lowest_score(pop_state), ('88.0%', 'x'))
 
+# --- new tests: web setup and start_app handler ---
+# setup page renders inputs and Start button
+test_setup_state = State(student_name='', current_GPA=0.0, target_GPA=4.0, is_failing=True, courses=[], all_test_scores={})
+assert_equal(
+    setup(test_setup_state),
+    Page(
+        state=test_setup_state,
+        content=[
+            "What's your name?",
+            TextBox(name='students_name', kind='text', default_value=''),
+            'Current GPA:',
+            TextBox(name='students_GPA', kind='text', default_value='0.0'),
+            'Target GPA:',
+            TextBox(name='students_target_GPA', kind='text', default_value='4.0'),
+            Button(text='Start', url='/start_app'),
+        ],
+    ),
+)
+
+# start_app with invalid name (numbers) returns error page referencing the same state
+test_start_invalid = State(student_name='', current_GPA=0.0, target_GPA=4.0, is_failing=True, courses=[], all_test_scores={})
+assert_equal(
+    start_app(test_start_invalid, '1234', '3.0', '3.5'),
+    Page(
+        state=test_start_invalid,
+        content=[
+            'Please enter a valid name (letters and spaces only).',
+            Button('Back', '/setup'),
+        ],
+    ),
+)
+
+# start_app with valid inputs initializes state and returns the index page
+test_start_ok = State(student_name='', current_GPA=0.0, target_GPA=4.0, is_failing=True, courses=[], all_test_scores={})
+assert_equal(
+    start_app(test_start_ok, 'Zoe', '3.2', '3.8'),
+    index(
+        State(
+            student_name='Zoe',
+            current_GPA=3.2,
+            target_GPA=3.8,
+            is_failing=False,
+            courses=[],
+            all_test_scores={},
+        )
+    ),
+)
+
 start_server(
     State(
         "",

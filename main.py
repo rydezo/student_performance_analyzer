@@ -1,19 +1,7 @@
 from dataclasses import dataclass
 from bakery import assert_equal
 from drafter import *
-
-# set up site metadata
-set_site_information(
-    author="rydero@udel.edu",
-    description="""Student can add/remove courses, record test scores, automatically calculate GPA, 
-    and view progress (highest/lowest scores and how far from the target GPA).""",
-    sources=["Official Drafter documentation only"],
-    planning=["design.jpg"],
-    links=["https://github.com/UD-F25-CS1/cs1-website-f25-rydezo/tree/main"]
-)
-hide_debug_information()
-set_website_title("Your Website Title")
-set_website_framed(False)
+import math
 
 # styling
 add_website_css("""
@@ -132,6 +120,9 @@ def append_course(state: State, course_name: str, credits: str, current_grade: s
     try:
         course_credits = int(credits)
         course_grade = float(current_grade)
+        # ensure numeric grade is finite
+        if not math.isfinite(course_grade):
+            raise ValueError()
     except:
         return Page(
             state,
@@ -139,6 +130,16 @@ def append_course(state: State, course_name: str, credits: str, current_grade: s
              Button("Add Course", "/add_course"),
              Button("Go to Home", "/index")]
         )
+
+    # Reject non-positive credits to avoid zero-division later
+    if course_credits <= 0:
+        return Page(
+            state,
+            content=["Credits must be a positive integer.",
+             Button("Add Course", "/add_course"),
+             Button("Go to Home", "/index")]
+        )
+
     new_course = Course(course_name, course_credits, course_grade, [])
     state.courses.append(new_course)
     update_GPA(state)
@@ -174,9 +175,8 @@ def delete_course(state: State, course_name: str) -> Page:
     Returns:
         Page: The updated home page after removing the course.
     """
-    for course in state.courses:
-        if course.course_name == course_name:
-            state.courses.remove(course)
+    # remove all matching courses (safe to build a new list instead of removing in-place)
+    state.courses = [c for c in state.courses if c.course_name != course_name]
     update_GPA(state)
     return index(state)
 
@@ -228,6 +228,12 @@ def get_letter_grade(course: Course) -> str:
     Returns:
         str: The letter grade corresponding to the numeric grade.
     """
+    # Be defensive: handle missing or non-finite grades
+    if course.current_grade is None or not isinstance(course.current_grade, (int, float)) or not math.isfinite(course.current_grade):
+        return "N/A"
+
+    # Use the numeric grade for mapping
+    numeric = int(course.current_grade)
     letter_grades = {
         "A": range(90,101),
         "B": range(80,90),
@@ -236,8 +242,9 @@ def get_letter_grade(course: Course) -> str:
         "F": range(0,60)
     }
     for letter, r in letter_grades.items():
-        if int(course.current_grade) in r:
+        if numeric in r:
             return letter
+    return "N/A"
 
 @route
 def update_grade(state: State) -> Page:
@@ -275,6 +282,8 @@ def change_grade(state: State, updated_course: str, new_grade: str):
     # check valid input
     try:
         float_grade = float(new_grade)
+        if not math.isfinite(float_grade):
+            raise ValueError()
     except:
         return Page(
             state,
@@ -331,6 +340,8 @@ def append_score(state: State, course_for_score: str, test_score: str):
     # check valid input
     try:
         float_score = float(test_score)
+        if not math.isfinite(float_score):
+            raise ValueError()
     except:
         return Page(
             state,
@@ -347,6 +358,7 @@ def append_score(state: State, course_for_score: str, test_score: str):
             else:
                 state.all_test_scores[course.course_name].append(float_score)
             # update course grade and GPA
+            # defensive: ensure len > 0 (it will be > 0 because we just appended)
             course.current_grade = round(sum(course.test_scores)/len(course.test_scores), 2)
             update_GPA(state)
     
@@ -366,6 +378,12 @@ def update_GPA(state: State):
     total_grade_points = 0
     total_credits = 0
     for course in state.courses:
+        # defensive: skip courses with missing or non-finite grade or credits
+        if course.current_grade is None or not isinstance(course.current_grade, (int, float)) or not math.isfinite(course.current_grade):
+            continue
+        if course.credits is None:
+            continue
+
         if course.current_grade >= 90:
             course_grade_points = 4.0
         elif course.current_grade >= 80:
@@ -376,9 +394,23 @@ def update_GPA(state: State):
             course_grade_points = 1.0
         else:
             course_grade_points = 0.0
-        total_grade_points += course_grade_points*course.credits
-        total_credits += course.credits
-    
+        # defensive: ensure credits are numeric and non-negative
+        try:
+            c = int(course.credits)
+        except:
+            continue
+        if c < 0:
+            continue
+
+        total_grade_points += course_grade_points * c
+        total_credits += c
+
+    # Avoid division by zero: if there are no valid credits, set GPA to 0.0
+    if total_credits == 0:
+        state.current_GPA = 0.0
+        state.is_failing = state.current_GPA < 2.0
+        return
+
     state.current_GPA = round(total_grade_points/total_credits, 2)
     state.is_failing = state.current_GPA < 2.0
 
@@ -398,16 +430,35 @@ def view_progress(state: State) -> Page:
         pass_status = "passing. Good job!"
 
     # highest course grade
-    high_course = Course("N/A", None, None, None) if not state.courses else state.courses[0]
+    high_course = None
     for course in state.courses:
-        if course.current_grade > high_course.current_grade:
+        if course.current_grade is None or not isinstance(course.current_grade, (int, float)) or not math.isfinite(course.current_grade):
+            continue
+        if high_course is None or course.current_grade > high_course.current_grade:
             high_course = course
 
     # lowest course grade
-    low_course = Course("N/A", None, None, None) if not state.courses else state.courses[0]
+    low_course = None
     for course in state.courses:
-        if course.current_grade < low_course.current_grade:
+        if course.current_grade is None or not isinstance(course.current_grade, (int, float)) or not math.isfinite(course.current_grade):
+            continue
+        if low_course is None or course.current_grade < low_course.current_grade:
             low_course = course
+
+    # format safe strings for display
+    if high_course is None:
+        high_name = "N/A"
+        high_grade_str = "N/A"
+    else:
+        high_name = high_course.course_name
+        high_grade_str = f"{high_course.current_grade}"
+
+    if low_course is None:
+        low_name = "N/A"
+        low_grade_str = "N/A"
+    else:
+        low_name = low_course.course_name
+        low_grade_str = f"{low_course.current_grade}"
 
     points_away = round((state.target_GPA - state.current_GPA), 1)
     return Page(
@@ -415,8 +466,8 @@ def view_progress(state: State) -> Page:
         content=[f"Your GPA is {state.current_GPA}.",
             f"You are currently {pass_status}",
             f"You are {points_away} points away from your target GPA ({state.target_GPA}).",
-            f"Your course with the highest grade: {high_course.course_name} ({high_course.current_grade}%)",
-            f"Your course with the lowest grade: {low_course.course_name} ({low_course.current_grade}%)",
+            f"Your course with the highest grade: {high_name} ({high_grade_str}%)",
+            f"Your course with the lowest grade: {low_name} ({low_grade_str}%)",
             f"Highest test score: {get_highest_score(state)}",
             f"Lowest test score: {get_lowest_score(state)}",
             Button("Go to Home", "/index")]
@@ -433,13 +484,20 @@ def get_highest_score(state: State) -> tuple:
     """
     if not state.all_test_scores:
         return (None, None)
-    highest_score = 0
+    highest_score = -math.inf
     course_of_highest = "N/A" if not state.courses else state.courses[0].course_name
     for course_name, test_scores in state.all_test_scores.items():
         for test_score in test_scores:
+            try:
+                if not math.isfinite(test_score):
+                    continue
+            except:
+                continue
             if test_score > highest_score:
                 highest_score = test_score
                 course_of_highest = course_name
+    if highest_score == -math.inf:
+        return (None, None)
     return (f'{highest_score}%', course_of_highest)
 
 def get_lowest_score(state: State) -> tuple:
@@ -453,13 +511,20 @@ def get_lowest_score(state: State) -> tuple:
     """
     if not state.all_test_scores:
         return (None, None)
-    lowest_score = 100
+    lowest_score = math.inf
     course_of_lowest = "N/A" if not state.courses else state.courses[0].course_name
     for course_name, test_scores in state.all_test_scores.items():
         for test_score in test_scores:
+            try:
+                if not math.isfinite(test_score):
+                    continue
+            except:
+                continue
             if test_score < lowest_score:
                 lowest_score = test_score
                 course_of_lowest = course_name
+    if lowest_score == math.inf:
+        return (None, None)
     return (f'{lowest_score}%', course_of_lowest)
 
 # Web-based setup for GitHub Pages / static hosting
